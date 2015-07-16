@@ -17,6 +17,16 @@ $(function() {
         TYPE = {
             FIXED : 'fixedSize',
             FLEX  : 'flexSize'
+        },
+        SELECTORS = {
+            FIXED_SIZE  : 'fixed-size',
+            FLEX_SIZE   : 'flex-size',
+            PIC_HOLDER  : '.pic-holder',
+            CUR_SEL     : '.pic-holder .cur',
+            SCROLL_CONT : '.pic-scroll-cont',
+            ITEM_LI     : '.pic-holder li',
+            NEXT        : '.ctrls.next',
+            PREV        : '.ctrls.prev'
         };
 
 
@@ -29,7 +39,7 @@ $(function() {
         var self         = this;
         self.gallery_url = config.gallery_url || GALLERY_URLS.NIGHT_SHOTS;
         self.api_key     = config.api_key || '6744859c20b9f3a0883839bd8b528e65';
-        self.type        = config.type || 'fixedSize';
+        self.type        = config.type || TYPE.FIXED;
         self.parent_id   = config.parent_id;
     };
 
@@ -37,14 +47,15 @@ $(function() {
         init: function () {
             var self = this;
 
-            $(self.parent_id + ' .pic-scroll-cont')
-            .addClass(self.type === TYPE.FIXED ? 'fixed-size' : 'flex-size');
+            $(self.parent_id + ' ' + SELECTORS.SCROLL_CONT)
+            .addClass(self.type === TYPE.FIXED ? SELECTORS.FIXED_SIZE : SELECTORS.FLEX_SIZE);
 
             self._getGalleryId()
             .then(self._getGalleryPhotos.bind(self))
             .then(self._getPhotos.bind(self))
             .then(self._buildPicScroll.bind(self));
         },
+
 
         /*
          *  @method _buildFlickrUrl
@@ -142,7 +153,7 @@ $(function() {
          */
         _setItemWidth: function () {
             var self        = this;
-                itemWidth   = $(self.parent_id + ' .pic-holder li').css('width').slice(0,-2);
+                itemWidth   = $(self.parent_id + ' ' + SELECTORS.ITEM_LI).css('width').slice(0,-2);
             self.itemWidth = itemWidth && parseInt(itemWidth, 10);
         },
 
@@ -153,7 +164,7 @@ $(function() {
          */
         _getCurIndex: function () {
             var self     = this,
-                curNode  = $(self.parent_id + ' .pic-holder .cur'),
+                curNode  = $(self.parent_id + ' ' + SELECTORS.CUR_SEL),
                 curIdx   = curNode && curNode.data('idx');
             return curIdx;
         },
@@ -165,9 +176,9 @@ $(function() {
          */
         _controlClickHandler: function () {
             var self        = this,
-                prevCtrl    = $(self.parent_id + ' .ctrls.prev'),
-                nextCtrl    = $(self.parent_id + ' .ctrls.next'),
-                picHolder   = $(self.parent_id + ' .pic-holder');
+                prevCtrl    = $(self.parent_id + ' ' + SELECTORS.PREV),
+                nextCtrl    = $(self.parent_id + ' ' + SELECTORS.NEXT),
+                picHolder   = $(self.parent_id + ' ' + SELECTORS.PIC_HOLDER);
 
             self._setItemWidth();
 
@@ -221,6 +232,7 @@ $(function() {
                 return;
             }
 
+            // TODO : throttle to avoid excessive calc on resize
             $(window).on('resize', _onResize.bind(self));
         },
 
@@ -233,6 +245,7 @@ $(function() {
         _buildPicScroll: function (photosArr) {
             var self          = this,
                 listItems     = '',
+                // TODO : clean this up a bit
                 buildPhotoLis = function  (p, idx) {
                     var className = 'p-item ' + (idx === 0 ? 'cur' : '');
                         bgImg     = 'style="background-image:url(' + p.url + ');"';
@@ -254,7 +267,7 @@ $(function() {
 
             // append the photos to the dom
             // TODO : think about post loading images
-            $(self.parent_id + ' .pic-holder').html(listItems);
+            $(self.parent_id + ' ' +  SELECTORS.PIC_HOLDER).html(listItems);
 
             self._controlClickHandler();
             self._windowResizeHandler();
